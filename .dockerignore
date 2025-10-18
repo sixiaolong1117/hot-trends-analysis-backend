@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+frontend_src/node_modules
+frontend_src/dist
