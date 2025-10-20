@@ -191,6 +191,54 @@ def analyze_hot_trends(args):
 - 被多个平台提到的内容重点分析
 - 在文末列举出被全网所关注的原始内容
 - 全文控制在300-500字，语言专业但易读
+- 需要注意平台调用名称和站点名的对应关系，在文中要使用站点名：
+| **站点**         | **类别**     | **调用名称**   |
+| ---------------- | ------------ | -------------- | 
+| 哔哩哔哩         | 热门榜       | bilibili       | 
+| AcFun            | 排行榜       | acfun          | 
+| 微博             | 热搜榜       | weibo          | 
+| 知乎             | 热榜         | zhihu          | 
+| 知乎日报         | 推荐榜       | zhihu-daily    | 
+| 百度             | 热搜榜       | baidu          | 
+| 抖音             | 热点榜       | douyin         | 
+| 快手             | 热点榜       | kuaishou       | 
+| 豆瓣电影         | 新片榜       | douban-movie   | 
+| 豆瓣讨论小组     | 讨论精选     | douban-group   | 
+| 百度贴吧         | 热议榜       | tieba          | 
+| 少数派           | 热榜         | sspai          | 
+| IT之家           | 热榜         | ithome         | 
+| IT之家「喜加一」 | 最新动态     | ithome-xijiayi | 
+| 简书             | 热门推荐     | jianshu        | 
+| 果壳             | 热门文章     | guokr          | 
+| 澎湃新闻         | 热榜         | thepaper       | 
+| 今日头条         | 热榜         | toutiao        | 
+| 36 氪            | 热榜         | 36kr           | 
+| 51CTO            | 推荐榜       | 51cto          | 
+| CSDN             | 排行榜       | csdn           | 
+| NodeSeek         | 最新动态     | nodeseek       | 
+| 稀土掘金         | 热榜         | juejin         | 
+| 腾讯新闻         | 热点榜       | qq-news        | 
+| 新浪网           | 热榜         | sina           | 
+| 新浪新闻         | 热点榜       | sina-news      | 
+| 网易新闻         | 热点榜       | netease-news   | 
+| 吾爱破解         | 榜单         | 52pojie        | 
+| 全球主机交流     | 榜单         | hostloc        | 
+| 虎嗅             | 24小时       | huxiu          | 
+| 酷安             | 热榜         | coolapk        | 
+| 虎扑             | 步行街热帖   | hupu           | 
+| 爱范儿           | 快讯         | ifanr          | 
+| 英雄联盟         | 更新公告     | lol            | 
+| 米游社           | 最新消息     | miyoushe       | 
+| 原神             | 最新消息     | genshin        | 
+| 崩坏3            | 最新动态     | honkai         | 
+| 崩坏：星穹铁道   | 最新动态     | starrail       | 
+| 微信读书         | 飙升榜       | weread         | 
+| NGA              | 热帖         | ngabbs         | 
+| V2EX             | 主题榜       | v2ex           | 
+| HelloGitHub      | Trending     | hellogithub    | 
+| 中央气象台       | 全国气象预警 | weatheralarm   | 
+| 中国地震台       | 地震速报     | earthquake     | 
+| 历史上的今天     | 月-日        | history        |
 
 请用中文撰写这篇总结。"""
 
