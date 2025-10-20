@@ -61,14 +61,15 @@ const form = ref({
 
 // 所有可用平台列表
 const availablePlatforms = [
-  "36kr", "51cto", "52pojie", "acfun", "baidu", "bilibili", "coolapk", "csdn",
-  "dgtle", "douban-group", "douban-movie", "douyin", "earthquake", "gameres",
-  "geekpark", "genshin", "github", "guokr", "hackernews", "hellogithub",
-  "history", "honkai", "hostloc", "hupu", "huxiu", "ifanr", "ithome-xijiayi",
-  "ithome", "jianshu", "juejin", "kuaishou", "linuxdo", "lol", "miyoushe",
-  "netease-news", "newsmth", "ngabbs", "nodeseek", "nytimes", "producthunt",
-  "qq-news", "sina-news", "sina", "smzdm", "sspai", "starrail", "thepaper",
-  "tieba", "toutiao", "v2ex", "weibo", "weread", "yystv", "zhihu-daily", "zhihu"
+  "36kr","51cto","52pojie","acfun","baidu","bilibili","coolapk","csdn","dgtle",
+  "douban-group","douban-movie","douyin","earthquake","gameres","geekpark",
+  "genshin","github","guokr","hackernews","hellogithub","history","honkai",
+  "hostloc","hupu","huxiu","ifanr","ithome-xijiayi","ithome","jianshu","juejin",
+  "kuaishou","linuxdo","lol","miyoushe","netease-news","newsmth","ngabbs",
+  "nodeseek","nytimes","producthunt","qq-news","sina-news","sina","smzdm","sspai",
+  "starrail","thepaper","tieba","toutiao","v2ex","weatheralarm","weibo","weread",
+  "yystv","zhihu-daily","zhihu"
+
 ];
 
 const loading = ref(false);

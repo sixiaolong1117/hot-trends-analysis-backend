@@ -24,7 +24,7 @@ async def serve_index():
 # 从环境变量读取 API 地址
 OLLAMA_API = os.getenv("OLLAMA_API", "http://localhost:11434")
 HOT_SEARCH_API = os.getenv("HOT_SEARCH_API", "http://localhost:8000/hot-search")
-DEFAULT_PLATFORMS = os.environ.get("DEFAULT_PLATFORMS", "weibo,zhihu,baidu,douyin,toutiao")
+DEFAULT_PLATFORMS = os.environ.get("DEFAULT_PLATFORMS", "weibo,zhihu,baidu,douyin")
 @app.get("/api/config")
 async def get_config():
     return {
@@ -37,8 +37,7 @@ class AnalysisRequest(BaseModel):
     ollama_model: str = "qwen2.5:14b"
     topics_per_platform: int = 10
     platforms: list[str] = [
-        "weibo", "zhihu", "baidu", "bilibili", "douyin",
-        "toutiao", "36kr", "ithome", "github", "hackernews"
+        "weibo", "zhihu", "baidu", "douyin"
     ]
 
 
