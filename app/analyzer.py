@@ -87,16 +87,17 @@ def call_ollama(prompt: str, ollama_api: str, model_name: str,
                 "stream": False,
                 "options": {
                     "temperature": 0.7,
-                    "num_predict": 800,
-                    "num_ctx": 2048
+                    "num_predict": 2000,
+                    "num_ctx": 32768
                 }
             }
 
             chat_api = f"{ollama_api}/api/chat"
             if attempt == 1:
-                print(f"🔗 调用 Ollama API: {chat_api}", flush=True)
+                print(f" 调用 Ollama API: {chat_api}", flush=True)
+                print(f" 上下文窗口: {payload['options']['num_ctx']} tokens", flush=True)
 
-            response = requests.post(chat_api, json=payload, timeout=180)
+            response = requests.post(chat_api, json=payload, timeout=300)
             response.raise_for_status()
             result = response.json()
 
