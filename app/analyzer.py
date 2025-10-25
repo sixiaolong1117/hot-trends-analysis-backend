@@ -265,6 +265,7 @@ def analyze_hot_trends(args):
         os.makedirs(args.save_dir, exist_ok=True)
         output = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "model_used": args.ollama_model,
             "platforms_analyzed": list(all_topics.keys()),
             "raw_data": all_topics,
             "analysis": analysis_result
