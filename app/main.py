@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 import subprocess, json, os
 import asyncio
+import requests
 
 app = FastAPI(title="Hot Trends Analyzer")
 
@@ -25,19 +26,57 @@ async def serve_index():
 # 从环境变量读取 API 地址
 OLLAMA_API = os.getenv("OLLAMA_API", "http://localhost:11434")
 HOT_SEARCH_API = os.getenv("HOT_SEARCH_API", "http://localhost:8000/hot-search")
-DEFAULT_PLATFORMS = os.environ.get("DEFAULT_PLATFORMS", "weibo,zhihu,baidu,douyin")
+DEFAULT_PLATFORMS = os.getenv("DEFAULT_PLATFORMS", "weibo,zhihu,baidu,douyin")
+TOPICS_PER_PLATFORM = int(os.getenv("TOPICS_PER_PLATFORM", "10"))
+
 
 @app.get("/api/config")
 async def get_config():
     return {
         "ollama_api": OLLAMA_API,
         "hot_search_api": HOT_SEARCH_API,
-        "default_platforms": DEFAULT_PLATFORMS
+        "default_platforms": DEFAULT_PLATFORMS,
+        "topics_per_platform": TOPICS_PER_PLATFORM
     }
+
+
+@app.get("/api/ollama-models")
+async def get_ollama_models():
+    """获取 Ollama 服务器上已下载的模型列表"""
+    try:
+        response = requests.get(f"{OLLAMA_API}/api/tags", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            models = []
+            for model in data.get("models", []):
+                model_name = model.get("name", "")
+                if model_name:
+                    models.append({
+                        "name": model_name,
+                        "size": model.get("size", 0),
+                        "modified_at": model.get("modified_at", "")
+                    })
+            return {
+                "success": True,
+                "models": models
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Ollama API 返回错误: {response.status_code}",
+                "models": []
+            }
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "error": f"无法连接到 Ollama 服务: {str(e)}",
+            "models": []
+        }
+
 
 class AnalysisRequest(BaseModel):
     ollama_model: str = "qwen2.5:14b"
-    topics_per_platform: int = 10
+    topics_per_platform: int = None
     platforms: list[str] = [
         "weibo", "zhihu", "baidu", "douyin"
     ]
@@ -106,6 +145,9 @@ async def analyze_stream(req: AnalysisRequest):
     """流式分析接口，使用 SSE 实时返回日志"""
     save_dir = "/app/outputs"
     os.makedirs(save_dir, exist_ok=True)
+    
+    # 使用环境变量作为默认值
+    topics_count = req.topics_per_platform if req.topics_per_platform is not None else TOPICS_PER_PLATFORM
 
     cmd = [
         "python", "/app/analyzer.py",
@@ -113,7 +155,7 @@ async def analyze_stream(req: AnalysisRequest):
         "--ollama-api", OLLAMA_API,
         "--ollama-model", req.ollama_model,
         "--save-dir", save_dir,
-        "--topics-per-platform", str(req.topics_per_platform)
+        "--topics-per-platform", str(topics_count)
     ]
     cmd += ["--platforms"] + req.platforms
 
@@ -133,6 +175,9 @@ async def analyze(req: AnalysisRequest):
     """保留原有的非流式接口作为备用"""
     save_dir = "/app/outputs"
     os.makedirs(save_dir, exist_ok=True)
+    
+    # 使用环境变量作为默认值
+    topics_count = req.topics_per_platform if req.topics_per_platform is not None else TOPICS_PER_PLATFORM
 
     cmd = [
         "python", "/app/analyzer.py",
@@ -140,7 +185,7 @@ async def analyze(req: AnalysisRequest):
         "--ollama-api", OLLAMA_API,
         "--ollama-model", req.ollama_model,
         "--save-dir", save_dir,
-        "--topics-per-platform", str(req.topics_per_platform)
+        "--topics-per-platform", str(topics_count)
     ]
     cmd += ["--platforms"] + req.platforms
 

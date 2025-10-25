@@ -4,12 +4,35 @@
     
     <div class="form-group">
       <label>Ollama 模型:</label>
-      <input 
-        v-model="config.ollama_model" 
-        type="text" 
-        placeholder="qwen2.5:14b"
-        :disabled="loading"
-      />
+      <div class="model-select-wrapper">
+        <select 
+          v-model="config.ollama_model" 
+          :disabled="loading || modelsLoading"
+          class="model-select"
+        >
+          <option v-if="modelsLoading" value="">加载中...</option>
+          <option v-else-if="!availableModels.length" value="">无可用模型</option>
+          <option 
+            v-for="model in availableModels" 
+            :key="model.name" 
+            :value="model.name"
+          >
+            {{ model.name }} ({{ formatSize(model.size) }})
+          </option>
+        </select>
+        <button 
+          type="button" 
+          @click="refreshModels" 
+          :disabled="loading || modelsLoading"
+          class="btn-refresh"
+          title="刷新模型列表"
+        >
+          🔄
+        </button>
+      </div>
+      <div v-if="modelError" class="error-message">
+        {{ modelError }}
+      </div>
     </div>
     
     <div class="form-group">
@@ -65,7 +88,7 @@
     
     <button 
       @click="startAnalysis" 
-      :disabled="loading || config.platforms.length === 0"
+      :disabled="loading || config.platforms.length === 0 || !config.ollama_model"
       class="btn-analyze"
     >
       {{ loading ? '分析中...' : '🚀 开始分析' }}
@@ -79,10 +102,14 @@ import { ref, onMounted } from 'vue';
 const emit = defineEmits(['start-analysis']);
 
 const config = ref({
-  ollama_model: 'qwen2.5:14b',
+  ollama_model: '',
   topics_per_platform: 10,
   platforms: ['weibo', 'zhihu', 'baidu', 'douyin']
 });
+
+const availableModels = ref([]);
+const modelsLoading = ref(false);
+const modelError = ref('');
 
 const availablePlatforms = ref([
   '36kr', '51cto', '52pojie', 'acfun', 'baidu', 'bilibili', 'coolapk', 'csdn',
@@ -123,7 +150,7 @@ const platformNames = {
   'hupu': '虎扑',
   'huxiu': '虎嗅',
   'ifanr': '爱范儿',
-  'ithome-xijiayi': 'IT之家(西街一))',
+  'ithome-xijiayi': 'IT之家(喜加一)',
   'ithome': 'IT之家',
   'jianshu': '简书',
   'juejin': '稀土掘金',
@@ -142,7 +169,7 @@ const platformNames = {
   'sina': '新浪',
   'smzdm': '什么值得买',
   'sspai': '少数派',
-  'starrail': '崩坏:星穹铁道',
+  'starrail': '崩坏：星穹铁道',
   'thepaper': '澎湃新闻',
   'tieba': '百度贴吧',
   'toutiao': '今日头条',
@@ -157,8 +184,59 @@ const platformNames = {
 
 const loading = ref(false);
 
+// 格式化文件大小
+function formatSize(bytes) {
+  if (!bytes) return '未知';
+  const gb = bytes / (1024 ** 3);
+  if (gb >= 1) return `${gb.toFixed(1)} GB`;
+  const mb = bytes / (1024 ** 2);
+  return `${mb.toFixed(1)} MB`;
+}
+
+// 加载 Ollama 模型列表
+async function loadModels() {
+  modelsLoading.value = true;
+  modelError.value = '';
+  
+  try {
+    const response = await fetch('/api/ollama-models');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        availableModels.value = data.models;
+        
+        // 如果当前没有选择模型，自动选择第一个
+        if (!config.value.ollama_model && data.models.length > 0) {
+          config.value.ollama_model = data.models[0].name;
+        }
+      } else {
+        modelError.value = data.error || '无法加载模型列表';
+        availableModels.value = [];
+      }
+    } else {
+      modelError.value = '服务器错误，无法加载模型列表';
+      availableModels.value = [];
+    }
+  } catch (error) {
+    console.error('加载模型失败:', error);
+    modelError.value = '网络错误，无法加载模型列表';
+    availableModels.value = [];
+  } finally {
+    modelsLoading.value = false;
+  }
+}
+
+// 刷新模型列表
+function refreshModels() {
+  loadModels();
+}
+
 // 从后端加载配置
 onMounted(async () => {
+  // 加载模型列表
+  await loadModels();
+  
+  // 加载其他配置
   try {
     const response = await fetch('/api/config');
     if (response.ok) {
@@ -167,6 +245,11 @@ onMounted(async () => {
       // 如果有默认平台配置，使用它
       if (serverConfig.default_platforms) {
         config.value.platforms = serverConfig.default_platforms.split(',');
+      }
+      
+      // 如果有 topics_per_platform 配置，使用它
+      if (serverConfig.topics_per_platform) {
+        config.value.topics_per_platform = serverConfig.topics_per_platform;
       }
     }
   } catch (error) {
@@ -177,6 +260,11 @@ onMounted(async () => {
 function startAnalysis() {
   if (config.value.platforms.length === 0) {
     alert('请至少选择一个平台');
+    return;
+  }
+  
+  if (!config.value.ollama_model) {
+    alert('请选择一个 Ollama 模型');
     return;
   }
   
@@ -227,6 +315,63 @@ h2 {
   font-weight: 500;
   color: #555;
   font-size: 14px;
+}
+
+.model-select-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.model-select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.model-select:focus {
+  outline: none;
+  border-color: #2196F3;
+}
+
+.model-select:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.btn-refresh {
+  padding: 10px 16px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #2196F3;
+  transform: rotate(180deg);
+}
+
+.btn-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.error-message {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 13px;
 }
 
 .platform-header {
